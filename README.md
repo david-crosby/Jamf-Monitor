@@ -1,5 +1,7 @@
 # Jamf Monitor
 
+**THIS IS A TRAINING PROJECT - NOT PRODUCTION CODE**
+
 A comprehensive single pane of glass for monitoring macOS device health in Jamf Pro. This application provides real-time visibility into device compliance, MDM command status, and policy execution with persistent database storage and intelligent caching.
 
 ## What's New in This Version
