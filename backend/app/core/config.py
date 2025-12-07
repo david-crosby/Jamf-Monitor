@@ -19,7 +19,10 @@ class Settings(BaseSettings):
     
     secret_key: str
     access_token_expire_minutes: int = 30
-    
+
+    admin_username: str
+    admin_password: str
+
     cache_ttl_seconds: int = 300
     
     class Config:

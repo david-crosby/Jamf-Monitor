@@ -19,32 +19,25 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
 
 
-class UserCredentials(BaseModel):
-    username: str = "admin"
-    hashed_password: str = get_password_hash("changeme")
-
-
 @router.post("/login", response_model=LoginResponse)
 async def login(credentials: LoginRequest):
-    user = UserCredentials()
-    
-    if credentials.username != user.username:
+    if credentials.username != settings.admin_username:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password"
         )
-    
-    if not verify_password(credentials.password, user.hashed_password):
+
+    if not verify_password(credentials.password, settings.admin_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password"
         )
-    
+
     access_token = create_access_token(
-        data={"sub": user.username},
+        data={"sub": credentials.username},
         expires_delta=timedelta(minutes=settings.access_token_expire_minutes)
     )
-    
+
     return LoginResponse(access_token=access_token)
 
 
