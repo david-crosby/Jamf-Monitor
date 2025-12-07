@@ -17,15 +17,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [statusFilter, setStatusFilter] = useState<HealthStatus | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [useCache, setUseCache] = useState(true);
 
-  const loadData = async (filter?: HealthStatus | null) => {
+  const loadData = async (filter?: HealthStatus | null, cache: boolean = true) => {
     try {
       setLoading(true);
       setError('');
       
       const [devicesData, summaryData, thresholdsData] = await Promise.all([
-        apiService.getAllDevices(filter || undefined),
-        apiService.getStatusSummary(),
+        apiService.getAllDevices(filter || undefined, cache),
+        apiService.getStatusSummary(cache),
         apiService.getThresholds()
       ]);
 
@@ -41,32 +42,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   };
 
   useEffect(() => {
-    loadData(statusFilter);
+    loadData(statusFilter, useCache);
   }, [statusFilter]);
 
   useEffect(() => {
     if (!autoRefresh) return;
 
     const interval = setInterval(() => {
-      loadData(statusFilter);
+      loadData(statusFilter, useCache);
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [autoRefresh, statusFilter]);
+  }, [autoRefresh, statusFilter, useCache]);
 
   const handleStatusCardClick = (status: HealthStatus) => {
     setStatusFilter(statusFilter === status ? null : status);
   };
 
-  const handleRefresh = () => {
-    loadData(statusFilter);
+  const handleRefresh = (forceNoCache: boolean = false) => {
+    loadData(statusFilter, !forceNoCache);
   };
 
   const handleUpdateThresholds = async (newThresholds: HealthThresholds) => {
     try {
       await apiService.updateThresholds(newThresholds);
       setThresholds(newThresholds);
-      loadData(statusFilter);
+      loadData(statusFilter, false);
       setShowSettings(false);
     } catch (err) {
       setError('Failed to update thresholds');
@@ -95,11 +96,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             />
             Auto-refresh
           </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+            <input
+              type="checkbox"
+              checked={useCache}
+              onChange={(e) => setUseCache(e.target.checked)}
+            />
+            Use cache
+          </label>
           <button
-            onClick={handleRefresh}
+            onClick={() => handleRefresh(false)}
             style={buttonStyle}
+            title="Refresh with cache"
           >
             Refresh
+          </button>
+          <button
+            onClick={() => handleRefresh(true)}
+            style={{ ...buttonStyle, backgroundColor: '#059669' }}
+            title="Force refresh from Jamf"
+          >
+            Force Refresh
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -192,7 +209,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               <button
                 onClick={() => {
                   setShowSettings(false);
-                  loadData(statusFilter);
+                  loadData(statusFilter, useCache);
                 }}
                 style={{ ...buttonStyle, backgroundColor: '#6b7280' }}
               >

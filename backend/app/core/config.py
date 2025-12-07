@@ -1,11 +1,12 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, Literal
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
     app_name: str = "Jamf Monitor"
     api_version: str = "v1"
+    environment: Literal["development", "production"] = "development"
     
     jamf_url: str
     jamf_client_id: str
@@ -24,6 +25,15 @@ class Settings(BaseSettings):
     admin_password: str
 
     cache_ttl_seconds: int = 300
+    
+    # Database configuration
+    database_path: str = "./jamf_monitor.db"
+    
+    mysql_host: str = "localhost"
+    mysql_port: int = 3306
+    mysql_user: str = "jamf_monitor"
+    mysql_password: str = ""
+    mysql_database: str = "jamf_monitor"
     
     class Config:
         env_file = ".env"

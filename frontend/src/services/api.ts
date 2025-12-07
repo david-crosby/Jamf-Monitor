@@ -43,41 +43,63 @@ class ApiService {
     return localStorage.getItem('access_token') !== null;
   }
 
-  async getAllDevices(statusFilter?: HealthStatus): Promise<DeviceListResponse> {
+  async getAllDevices(statusFilter?: HealthStatus, useCache: boolean = true): Promise<DeviceListResponse> {
     const url = new URL(`${API_BASE_URL}/devices/`);
     if (statusFilter) {
       url.searchParams.append('status_filter', statusFilter);
     }
+    url.searchParams.append('use_cache', useCache.toString());
 
     const response = await fetch(url.toString(), {
       headers: this.getAuthHeaders()
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        window.location.reload();
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to fetch devices');
     }
 
     return response.json();
   }
 
-  async getDeviceHealth(deviceId: number): Promise<DeviceHealth> {
-    const response = await fetch(`${API_BASE_URL}/devices/${deviceId}`, {
+  async getDeviceHealth(deviceId: number, useCache: boolean = true): Promise<DeviceHealth> {
+    const url = new URL(`${API_BASE_URL}/devices/${deviceId}`);
+    url.searchParams.append('use_cache', useCache.toString());
+
+    const response = await fetch(url.toString(), {
       headers: this.getAuthHeaders()
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        window.location.reload();
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to fetch device health');
     }
 
     return response.json();
   }
 
-  async getStatusSummary(): Promise<StatusSummary> {
-    const response = await fetch(`${API_BASE_URL}/devices/status/summary`, {
+  async getStatusSummary(useCache: boolean = true): Promise<StatusSummary> {
+    const url = new URL(`${API_BASE_URL}/devices/status/summary`);
+    url.searchParams.append('use_cache', useCache.toString());
+
+    const response = await fetch(url.toString(), {
       headers: this.getAuthHeaders()
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        window.location.reload();
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to fetch status summary');
     }
 
@@ -90,6 +112,11 @@ class ApiService {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        window.location.reload();
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to fetch thresholds');
     }
 
@@ -104,6 +131,11 @@ class ApiService {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        window.location.reload();
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to update thresholds');
     }
 

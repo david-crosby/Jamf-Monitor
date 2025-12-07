@@ -1,5 +1,5 @@
 import React from 'react';
-import { DeviceHealth, HealthStatus } from '../types';
+import { DeviceHealth } from '../types';
 import { formatDateTime, getStatusColor, getStatusLabel } from '../utils/helpers';
 
 interface DeviceTableProps {
